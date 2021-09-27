@@ -35,7 +35,7 @@ public class MateriaController {
     public ResponseEntity <Boolean> CadastrarMaterias(@RequestBody MateriaEntity materia){
         try {
             this.materiaRepository.save(materia);
-        return ResponseEntity.status(HttpStatus.OK).body(true);
+        return ResponseEntity.status(HttpStatus.CREATED).body(true);
 
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.OK).body(false);

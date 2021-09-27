@@ -1,6 +1,7 @@
 package com.rasmoo.cliente.escola.gradecurricular.service;
 
 import com.rasmoo.cliente.escola.gradecurricular.entity.MateriaEntity;
+import com.rasmoo.cliente.escola.gradecurricular.exception.MateriaException;
 import com.rasmoo.cliente.escola.gradecurricular.repository.IMateriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,15 +21,20 @@ public class MateriaService implements IMateriaService {
     @Override
     public Boolean atualizar(MateriaEntity materia) {
         try {
-            MateriaEntity materiaEntityAtualizar = this.materiaRepository.findById(materia.getId()).get();
 
-            materiaEntityAtualizar.setNome(materia.getNome());
-            materiaEntityAtualizar.setCodigo(materia.getCodigo());
-            materiaEntityAtualizar.setHoras(materia.getHoras());
-            materiaEntityAtualizar.setFrequencia(materia.getFrequencia());
-            this.materiaRepository.save(materiaEntityAtualizar);
-            return true;
+            Optional<MateriaEntity> materiaOptional = this.materiaRepository.findById(materia.getId());
+            if(materiaOptional.isPresent()){
+                MateriaEntity materiaEntityAtualizar = materiaOptional.get();
 
+                materiaEntityAtualizar.setNome(materia.getNome());
+                materiaEntityAtualizar.setCodigo(materia.getCodigo());
+                materiaEntityAtualizar.setHoras(materia.getHoras());
+                materiaEntityAtualizar.setFrequencia(materia.getFrequencia());
+                this.materiaRepository.save(materiaEntityAtualizar);
+                return true;
+            }
+
+            return false;
         }catch (Exception e){
             return false;
 
@@ -38,10 +44,15 @@ public class MateriaService implements IMateriaService {
     @Override
     public Boolean excluir(Long id) {
         try {
+            this.consultar(id);
             this.materiaRepository.deleteById(id);
             return true;
-        }catch (Exception e){
-            return false;
+        }
+        catch (MateriaException m){
+            throw m;
+        }
+        catch (Exception e){
+            throw e;
         }
     }
 
@@ -50,7 +61,9 @@ public class MateriaService implements IMateriaService {
         try{
            return this.materiaRepository.findAll();
 
-        }catch (Exception e){
+        }
+
+        catch (Exception e){
             return new ArrayList<>();
         }
     }
@@ -63,9 +76,14 @@ public class MateriaService implements IMateriaService {
             if(materiaOptional.isPresent()){
                 return materiaOptional.get();
             }
-            return null;
-        }catch (Exception e){
-            return null;
+            throw new MateriaException("Materia não encontrada", HttpStatus.NOT_FOUND);
+        }
+        catch (MateriaException m){
+            throw m;
+        }
+
+        catch (Exception e){
+            throw new MateriaException("Error interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
